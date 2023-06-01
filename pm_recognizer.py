@@ -112,35 +112,6 @@ def func_bacc(total, stringList, answer):
     return bacc
 
 
-# return a list of each statistics for every testing case
-def calculate_statistics(rows):
-    length = rows.shape[0]
-
-    precision = []
-    recall = []
-    accuracy = []
-    b_accuracy = []
-        
-    for index, row in rows.iterrows():
-        
-        answer = row["Real_Goal"]
-        results = row["Results"].split("/")
-        all_candidates = row["Cost"].split("/")
-        
-        total = len(all_candidates)-1   # the last one is /
-        
-        p = func_precision(results, answer)
-        r = func_recall(results, answer)
-        a = func_accuracy(total, results, answer)
-        bacc = func_bacc(total, results, answer)
-        
-        precision.append(p)
-        recall.append(r)
-        accuracy.append(a)
-        b_accuracy.append(bacc)
-    
-    return precision, recall, accuracy, b_accuracy
-
 
 # return a list of each statistics for every testing case
 def calculate_statistics(rows):
@@ -332,6 +303,7 @@ def run_system(phi, lamb, delta, theta, subject_id, n_features, n_clusters):
 
     # dependent
     output_results = "f1_def_results_%s.csv" % str(subject_id)
+    # output_results = "kmeans%s_f%s_%s.csv" % (str(n_clusters), str(n_features), str(subject_id))
 
 
     ##############################################################
@@ -356,7 +328,6 @@ def run_system(phi, lamb, delta, theta, subject_id, n_features, n_clusters):
         ## K-Means
         kmeans = KMeans(n_clusters=n_clusters, random_state=0, n_init=n_init).fit(reduced)
         df_classes = pd.DataFrame(kmeans.labels_, columns = ['class'])
-
     if classifier_option == "manual":
         ### manual classification
         converted_trace = map2labels(reduced, selected_features, n_labels)
@@ -373,115 +344,121 @@ def run_system(phi, lamb, delta, theta, subject_id, n_features, n_clusters):
     ########## Run the experiments with PM-based recognizers #########
     # clean the result and feedback
     os.system("rm -rf %s" % output_results)
-    os.system("rm -rf Feedback")
+    
 
     # number of traces for this goal (the number of traces for each goal must be the same)
     num_traces = len(subtraces[0])  # subtraces[0] = goal_0
 
-    
+    # reCreateDir("pmdata_%s" % str(subject_id))        #####################
     for test_id in range(num_traces): #num_traces
-        reCreateDir("test")
-        reCreateDir("model")
-        
-        goal_id = 0
-        for a_goal in subtraces:
-            reCreateDir("goal_%s" % str(goal_id) )
-            trace_id = 0
-            for a_trace in a_goal:
-                write_plan(a_trace, "goal_%s/sas_plan.%s" % (str(goal_id), str(trace_id)) )
-                trace_id += 1
 
-            # test
-            os.system("mv goal_%s/sas_plan.%s test/sas_plan.%s" % (str(goal_id), str(test_id), str(goal_id)) )
-            # model
-            os.system("java -jar sas2xes.jar goal_%s model/%s.xes" % (str(goal_id), str(goal_id)) )
-            goal_id += 1
+
+        ## create models
+        # reCreateDir("pmdata_%s/case_%s" % (str(subject_id), str(test_id)))
+        # reCreateDir("pmdata_%s/case_%s/test" % (str(subject_id), str(test_id)))
+        # reCreateDir("pmdata_%s/case_%s/model" % (str(subject_id), str(test_id)))
+        
+        # goal_id = 0
+        # for a_goal in subtraces:
+        #     reCreateDir("goal_%s" % str(goal_id) )
+        #     trace_id = 0
+        #     for a_trace in a_goal:
+        #         write_plan(a_trace, "goal_%s/sas_plan.%s" % (str(goal_id), str(trace_id)) )
+        #         trace_id += 1
+
+        #     # test
+        #     os.system("mv goal_%s/sas_plan.%s pmdata_%s/case_%s/test/sas_plan.%s" % (str(goal_id), str(test_id), str(subject_id), str(test_id), str(goal_id)) )
+        #     # model
+        #     os.system("java -jar sas2xes.jar goal_%s pmdata_%s/case_%s/model/%s.xes" % (str(goal_id), str(subject_id), str(test_id), str(goal_id)) )
+        #     goal_id += 1
             
-        # mine pnml
-        os.chdir("./miningPNMLS")
-        os.system("java -jar mine_all_pnmls.jar -DFM ../model/ 0.8")
-        os.chdir("../")
+        # # mine pnml
+
+        # os.chdir("./miningPNMLS")
+        # os.system("java -jar mine_all_pnmls.jar -DFM ../pmdata_%s/case_%s/model/ 0.8" % (str(subject_id), str(test_id)))
+        # os.chdir("../")
         
         # test for all goals in this iteration
         for g in range(len(subtraces)):
             # goal_id, goal_id, percentage
             for percentage in [0.1,0.3,0.5,0.7,1.0]:
-                os.system("java -jar recognizer.jar -w model/ test/sas_plan.%s %s %s %s %s %s %s %s" 
-                          %(str(g), str(g), str(percentage), str(phi), str(lamb), str(delta), str(theta), str(output_results) )   )  
+                os.system("java -jar recognizer.jar -w pmdata_%s/case_%s/model/ pmdata_%s/case_%s/test/sas_plan.%s %s %s %s %s %s %s %s" 
+                          %(str(subject_id), str(test_id), str(subject_id), str(test_id), str(g), str(g), str(percentage), str(phi), str(lamb), str(delta), str(theta), str(output_results) )   )  
 
 
-    result_data = pd.read_csv(output_results, usecols=[0,1,2,3,4])
-    p, r, f1, a, bacc = calculate_statistics(result_data)
+    os.system("rm -rf Feedback")
+    # result_data = pd.read_csv(output_results, usecols=[0,1,2,3,4])
+    # p, r, f1, a, bacc = calculate_statistics(result_data)
 
 
-    return statistics.mean(p), statistics.mean(r), statistics.mean(f1), statistics.mean(a), statistics.mean(bacc)
-
+    # return statistics.mean(p), statistics.mean(r), statistics.mean(f1), statistics.mean(a), statistics.mean(bacc)
+    return 0
 
 
 ##############################################################################
-phi = 50
-lamb = 1.5
-delta = 1.0
-theta = 0.9
-subject_id = 10
-n_features = 28
-n_clusters = 60
+# phi = 50
+# lamb = 1.5
+# delta = 1.0
+# theta = 0.9
+# subject_id = 10
+# n_features = 28
+# n_clusters = 130
 
-run_system(phi, lamb, delta, theta, subject_id, n_features, n_clusters)
+# run_system(phi, lamb, delta, theta, subject_id, n_features, n_clusters)
 
-# sub_id = [1,2,3,4,5,6,7,8,9,10]
-# features_num_list = [32,40,30,30,34,28,25,34,30,28]
-# cluster_num_list = [60,100,180,170,100,90,100,170,140,130]
+sub_id = [1,2,3,4,5,6,7,8,9,10]
+features_num_list = [32,40,30,30,34,28,25,34,30,28]
+cluster_num_list = [60,100,180,170,100,90,100,170,140,130]
 
-# delta_list  = [2.1870093342264347,
-#      1.084800816609837,
-#      0.187433151957276,
-#      4.903413283459355,
-#      1.8268388202335677,
-#      1.0285886916143063,
-#      1.2328490932305418,
-#      1.849281745915097,
-#      1.116650427635112,
-#      0.4637984255291138]
-# lamb_list  = [1.3700920003397572,
-#      1.2473368231284994,
-#      1.2879923507839184,
-#      3.1741078302673125,
-#      2.7417285189261644,
-#      2.893389785116266,
-#      2.1513950628675347,
-#      1.0438710107770883,
-#      1.1235476464151517,
-#      3.0711501501373544]
-# phi_list = [87, 91, 36, 16, 93, 73, 91, 46, 7, 5]
-# theta_list  = [0.8220853860399499,
-#      0.9165971414004777,
-#      0.988840857790459,
-#      0.6164212914641611,
-#      0.7478471891757215,
-#      0.8470576840770996,
-#      0.8826274473886883,
-#      0.6916758555951421,
-#      0.7967492629159637,
-#      0.7992781751948667]
+delta_list  = [2.1870093342264347,
+     1.084800816609837,
+     0.187433151957276,
+     4.903413283459355,
+     1.8268388202335677,
+     1.0285886916143063,
+     1.2328490932305418,
+     1.849281745915097,
+     1.116650427635112,
+     0.4637984255291138]
+lamb_list  = [1.3700920003397572,
+     1.2473368231284994,
+     1.2879923507839184,
+     3.1741078302673125,
+     2.7417285189261644,
+     2.893389785116266,
+     2.1513950628675347,
+     1.0438710107770883,
+     1.1235476464151517,
+     3.0711501501373544]
+phi_list = [87, 91, 36, 16, 93, 73, 91, 46, 7, 5]
+theta_list  = [0.8220853860399499,
+     0.9165971414004777,
+     0.988840857790459,
+     0.6164212914641611,
+     0.7478471891757215,
+     0.8470576840770996,
+     0.8826274473886883,
+     0.6916758555951421,
+     0.7967492629159637,
+     0.7992781751948667]
 
-# for i in range(10):
+for i in range(10):
 
-#     subject_id = sub_id[i]
-#     n_features = features_num_list[i]
-#     n_clusters = cluster_num_list[i]
+    subject_id = sub_id[i]
+    n_features = features_num_list[i]
+    n_clusters = cluster_num_list[i]
 
-#     # phi = phi_list[i]
-#     # lamb = delta_list[i]
-#     # delta = lamb_list[i]
-#     # theta = theta_list[i]
+    # phi = phi_list[i]
+    # lamb = delta_list[i]
+    # delta = lamb_list[i]
+    # theta = theta_list[i]
 
-#     phi = 50
-#     lamb = 1.5
-#     delta = 1.0
-#     theta = 0.9
+    phi = 50
+    lamb = 1.5
+    delta = 1.0
+    theta = 0.9
 
-#     run_system(phi, lamb, delta, theta, subject_id, n_features, n_clusters)
+    run_system(phi, lamb, delta, theta, subject_id, n_features, n_clusters)
 
 
 
