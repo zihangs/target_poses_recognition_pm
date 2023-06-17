@@ -407,9 +407,9 @@ def run_system(phi, lamb, delta, theta, subject_id, n_features, n_clusters):
 
 # run_system(phi, lamb, delta, theta, subject_id, n_features, n_clusters)
 
-# sub_id = [1,2,3,4,5,6,7,8,9,10]
-# features_num_list = [32,40,30,30,34,28,25,34,30,28]
-# cluster_num_list = [60,100,180,170,100,90,100,170,140,130]
+sub_id = [2,3]
+features_num_list = [1, 2]
+cluster_num_list = [10, 150]
 
 # delta_list  = [2.1870093342264347,
 #      1.084800816609837,
@@ -443,23 +443,23 @@ def run_system(phi, lamb, delta, theta, subject_id, n_features, n_clusters):
 #      0.7967492629159637,
 #      0.7992781751948667]
 
-# for i in range(10):
+for i in range(2):
 
-#     subject_id = sub_id[i]
-#     n_features = features_num_list[i]
-#     n_clusters = cluster_num_list[i]
+    subject_id = sub_id[i]
+    n_features = features_num_list[i]
+    n_clusters = cluster_num_list[i]
 
-#     # phi = phi_list[i]
-#     # lamb = delta_list[i]
-#     # delta = lamb_list[i]
-#     # theta = theta_list[i]
+    # phi = phi_list[i]
+    # lamb = delta_list[i]
+    # delta = lamb_list[i]
+    # theta = theta_list[i]
 
-#     phi = 50
-#     lamb = 1.5
-#     delta = 1.0
-#     theta = 0.9
+    phi = 50
+    lamb = 1.5
+    delta = 1.0
+    theta = 0.9
 
-#     run_system(phi, lamb, delta, theta, subject_id, n_features, n_clusters)
+    run_system(phi, lamb, delta, theta, subject_id, n_features, n_clusters)
 
 
 
