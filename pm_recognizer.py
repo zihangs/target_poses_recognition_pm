@@ -160,7 +160,8 @@ def run_system(phi, lamb, delta, theta, subject_id, n_features, n_clusters):
         for g in range(3):
             # goal_id, goal_id, percentage
             for percentage in [0.1,0.3,0.5,0.7,1.0]:
-                os.system("java -jar recognizer.jar -w pmdata_%s/case_%s/model/ pmdata_%s/case_%s/test/sas_plan.%s %s %s %s %s %s %s %s" 
+                # option -w -p -stw
+                os.system("java -jar recognizer.jar -stw pmdata_%s/case_%s/model/ pmdata_%s/case_%s/test/sas_plan.%s %s %s %s %s %s %s %s" 
                           %(str(subject_id), str(test_id), str(subject_id), str(test_id), str(g), str(g), str(percentage), str(phi), str(lamb), str(delta), str(theta), str(output_results) )   )  
 
 
@@ -219,15 +220,15 @@ if __name__ == '__main__':
         n_features = features_num_list[i]
         n_clusters = cluster_num_list[i]
 
-        phi = phi_list[i]
-        lamb = delta_list[i]
-        delta = lamb_list[i]
-        theta = theta_list[i]
+        # phi = phi_list[i]
+        # lamb = delta_list[i]
+        # delta = lamb_list[i]
+        # theta = theta_list[i]
 
-        # phi = 50
-        # lamb = 1.5
-        # delta = 1.0
-        # theta = 0.9
+        phi = 50
+        lamb = 1.5
+        delta = 1.0
+        theta = 0.9
 
         run_system(phi, lamb, delta, theta, subject_id, n_features, n_clusters)
 

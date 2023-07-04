@@ -1,1 +1,0 @@
-{"version": 0.1, "outcomes": [["ScalarOutcome", "p", "p.cls"], ["ScalarOutcome", "r", "r.cls"], ["ScalarOutcome", "f1", "f1.cls"], ["ScalarOutcome", "bacc", "bacc.cls"]], "experiments": {"delta": "float64", "lamb": "float64", "phi": "int64", "theta": "float64", "scenario": "category", "policy": "category", "model": "category"}}
